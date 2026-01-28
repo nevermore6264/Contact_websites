@@ -202,7 +202,13 @@ const formatUnit = (value) => {
   const caIndex = tokens.findIndex((token) => token === "CA");
   if (caIndex >= 0) {
     const level = tokens[caIndex + 1] || "";
-    const unitName = tokens.slice(caIndex + 2).join(" ");
+    const unitTokens = [];
+    for (let i = caIndex + 2; i < tokens.length; i += 1) {
+      const token = tokens[i];
+      if (abbreviations.has(token.toLowerCase())) break;
+      unitTokens.push(token);
+    }
+    const unitName = unitTokens.join(" ");
     const parts = [tokens[caIndex], level, unitName].filter(Boolean).join(" ");
 
     return parts
