@@ -214,9 +214,23 @@ const getLastWord = (value) => {
   return parts.length ? parts[parts.length - 1] : "";
 };
 
+const splitNameUnit = (name, unit) => {
+  let finalName = name || "";
+  let finalUnit = unit || "";
+  if (!finalName && finalUnit && finalUnit.includes("-")) {
+    const parts = finalUnit.split("-").map((p) => p.trim());
+    if (parts.length >= 2) {
+      finalName = parts[0];
+      finalUnit = parts.slice(1).join(" - ");
+    }
+  }
+  return { finalName, finalUnit };
+};
+
 const buildSummary = (name, unit, province) => {
-  const namePart = toUpperCaseSafe(getLastWord(name)).trim();
-  const unitPart = formatUnit(unit);
+  const { finalName, finalUnit } = splitNameUnit(name, unit);
+  const namePart = toUpperCaseSafe(getLastWord(finalName)).trim();
+  const unitPart = formatUnit(finalUnit);
   const provincePart = toUpperCaseSafe(normalizeHyphenSpacing(province));
   if (!namePart) {
     return `${unitPart}-${provincePart}`;
