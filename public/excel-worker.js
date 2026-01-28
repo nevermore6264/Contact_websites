@@ -150,16 +150,38 @@ const normalizeHyphenSpacing = (value) => {
 
 const abbreviateUnit = (value) => {
   if (!value) return "";
-  let text = value.toString();
-  text = text.replace(/\bCÔNG AN\b/gi, "CA");
-  text = text.replace(/\bHUYỆN\b/gi, "h");
-  text = text.replace(/\bTHÀNH PHỐ\b/gi, "tp");
-  text = text.replace(/\bTỈNH\b/gi, "t");
-  text = text.replace(/\bQUẬN\b/gi, "q");
-  text = text.replace(/\bTHỊ XÃ\b/gi, "tx");
-  text = text.replace(/\bTHỊ TRẤN\b/gi, "tt");
-  text = text.replace(/\bPHƯỜNG\b/gi, "p");
-  text = text.replace(/\bXÃ\b/gi, "x");
+  let text = value.toString().toUpperCase();
+
+  const replaceVietnamese = (input, pattern, replacement) => {
+    const normalized = input.normalize("NFD");
+    const withoutMarks = normalized.replace(/[\u0300-\u036f]/g, "");
+    const regex = new RegExp(pattern, "g");
+    const plainMatches = withoutMarks.match(regex);
+    if (!plainMatches) return input;
+
+    let result = input;
+    const plainRegex = new RegExp(pattern, "g");
+    let match;
+    let offset = 0;
+    while ((match = plainRegex.exec(withoutMarks)) !== null) {
+      const start = match.index - offset;
+      const end = start + match[0].length;
+      result = result.slice(0, start) + replacement + result.slice(end);
+      offset += match[0].length - replacement.length;
+    }
+    return result;
+  };
+
+  text = replaceVietnamese(text, "\\bCONG AN\\b", "CA");
+  text = replaceVietnamese(text, "\\bHUYEN\\b", "h");
+  text = replaceVietnamese(text, "\\bTHANH PHO\\b", "tp");
+  text = replaceVietnamese(text, "\\bTINH\\b", "t");
+  text = replaceVietnamese(text, "\\bQUAN\\b", "q");
+  text = replaceVietnamese(text, "\\bTHI XA\\b", "tx");
+  text = replaceVietnamese(text, "\\bTHI TRAN\\b", "tt");
+  text = replaceVietnamese(text, "\\bPHUONG\\b", "p");
+  text = replaceVietnamese(text, "\\bXA\\b", "x");
+
   text = text.replace(/\s+/g, " ").trim();
   return text;
 };

@@ -220,7 +220,7 @@ export default function Home() {
     [headers, hiddenColumns],
   );
 
-  const exportCsv = () => {
+  const exportXlsx = async () => {
     if (!headers.length) return;
     const columns = visibleColumnIndices;
     const headerRow = columns.map((i) => headers[i] || `Cột ${i + 1}`);
@@ -229,24 +229,13 @@ export default function Home() {
       columns.map((i) => (row[i] ?? "").toString()),
     );
 
-    const escapeCsv = (value: string) => {
-      const escaped = value.replace(/"/g, '""');
-      return /[",\n]/.test(escaped) ? `"${escaped}"` : escaped;
-    };
-
-    const csvContent = [headerRow, ...rowsToExport]
-      .map((line) => line.map(escapeCsv).join(","))
-      .join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `contacts_export_${Date.now()}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    const XLSX = await import("xlsx");
+    const worksheet = XLSX.utils.aoa_to_sheet([headerRow, ...rowsToExport]);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Contacts");
+    XLSX.writeFile(workbook, `contacts_export_${Date.now()}.xlsx`, {
+      bookType: "xlsx",
+    });
   };
 
   return (
@@ -387,7 +376,7 @@ export default function Home() {
 
             <button
               type="button"
-              onClick={exportCsv}
+              onClick={exportXlsx}
               className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
             >
               <svg
@@ -403,7 +392,7 @@ export default function Home() {
                   d="M12 4v12m0 0l-3-3m3 3l3-3M4 20h16"
                 />
               </svg>
-              Xuất CSV
+              Xuất XLSX
             </button>
 
             <label className="group relative inline-flex cursor-pointer items-center justify-center gap-2.5 overflow-hidden rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/30 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-blue-500/40 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50">
