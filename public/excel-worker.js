@@ -189,10 +189,40 @@ const abbreviateUnit = (value) => {
 const formatUnit = (value) => {
   if (!value) return "";
   const abbreviations = new Set(["h", "tp", "t", "q", "tx", "tt", "p", "x"]);
-  const normalized = normalizeHyphenSpacing(abbreviateUnit(value));
+  const normalized = normalizeHyphenSpacing(abbreviateUnit(value))
+    .split(",")[0]
+    .trim();
 
-  return normalized
+  const tokens = normalized
     .split(" ")
+    .map((token) => token.trim())
+    .filter(Boolean);
+
+  // Chỉ lấy 1 cấp ngay sau chữ "CA" nếu có
+  const caIndex = tokens.findIndex((token) => token === "CA");
+  if (caIndex >= 0) {
+    const level = tokens[caIndex + 1] || "";
+    const unitName = tokens.slice(caIndex + 2).join(" ");
+    const parts = [tokens[caIndex], level, unitName].filter(Boolean).join(" ");
+
+    return parts
+      .split(" ")
+      .map((token) => {
+        if (!token) return "";
+        return token
+          .split("-")
+          .map((part) => {
+            const lower = part.toLowerCase();
+            if (abbreviations.has(lower)) return lower;
+            return part.toUpperCase();
+          })
+          .join("-");
+      })
+      .filter(Boolean)
+      .join(" ");
+  }
+
+  return tokens
     .map((token) => {
       if (!token) return "";
       return token
